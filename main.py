@@ -107,6 +107,11 @@ def parse_csv_file(file_path):
             csv_data.append(row)
     return csv_data
 
+@app.route('/api/check_dataset', methods=['GET'])
+def check_dataset():
+    dataset_path = 'dataset/dataframe/dataset.csv'
+    file_exists = os.path.exists(dataset_path)
+    return jsonify({"exists": file_exists})
 
 @app.route('/api/count/labels/dataset', methods=['POST'])
 def api_counts_labels_dataset():
@@ -141,6 +146,12 @@ def proses_data():
     else:
         return jsonify({"result" : "error"})
 
+@app.route('/api/check_preprocessed_dataset', methods=['GET'])
+def check_preprocessed_dataset():
+    dataset_path = 'dataset/preprocessing/dataset_hasil_preprocess.csv'
+    file_exists = os.path.exists(dataset_path)
+    return jsonify({"exists": file_exists})
+
 @app.route('/api/predict/file', methods=['POST'])
 def predict_input_file():
     PATH_FILE = 'pretrained/'
@@ -168,8 +179,6 @@ def predict_input_file():
 # def predict_download_file():
 #     if request.method == 'GET':
 #         return send_file('dataset/predict_file/hasil_prediksi.csv', mimetype='text/csv', as_attachment=True)
-
-import csv
 
 @app.route('/api/predict/file/download', methods=['GET'])
 def predict_download_file():
@@ -210,6 +219,11 @@ def predict_download_file():
         # Kirim file yang telah diperbarui ke pengguna sebagai unduhan
         return send_file('dataset/predict_file/hasil_prediksi_updated.csv', mimetype='text/csv', as_attachment=True)
 
+@app.route('/api/check_predicted_file', methods=['GET'])
+def check_predicted_file():
+    dataset_path = 'dataset/predict_file/hasil_prediksi.csv'
+    file_exists = os.path.exists(dataset_path)
+    return jsonify({"exists": file_exists})
 
 @app.route('/api/count/labels/pred', methods=['POST'])
 def api_counts_labels_pred():

@@ -108,32 +108,74 @@ $(document).ready( () => {
     }
 
     $('#btn_prediksi_sentimen').on('click', () => {
-        $.ajax({
-            url: '/api/predict/file',
-            type: 'POST',
-            contentType: false,
-            cache: false,
-            processData: false,
-        }).done((resp) => {
-            // Display success Swal.fire
-            Swal.fire({
-                title: 'prediksi selesai',
-                icon: 'success',
-                showConfirmButton: true, // Show confirm button
-                showCloseButton: false,
-                allowEscapeKey: false,
-                allowOutsideClick: false,
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Reload the page after successful upload
-                    location.reload(true); // This will force a reload of the page
-                }
+        // Function to check if preprocessed dataset file exists
+        function checkPreprocessedDatasetExists() {
+            return $.ajax({
+                url: '/api/check_preprocessed_dataset', // URL endpoint to check if preprocessed dataset file exists
+                type: 'GET'
             });
-        });       
+        }
+    
+        checkPreprocessedDatasetExists().done((response) => {
+            if (response.exists) {
+                // Proceed with prediction if preprocessed dataset exists
+                $.ajax({
+                    url: '/api/predict/file',
+                    type: 'POST',
+                    contentType: false,
+                    cache: false,
+                    processData: false,
+                }).done((resp) => {
+                    // Display success Swal.fire
+                    Swal.fire({
+                        title: 'Prediksi selesai',
+                        icon: 'success',
+                        showConfirmButton: true, // Show confirm button
+                        showCloseButton: false,
+                        allowEscapeKey: false,
+                        allowOutsideClick: false,
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Reload the page after successful upload
+                            location.reload(true); // This will force a reload of the page
+                        }
+                    });
+                });
+            } else {
+                // Display warning if preprocessed dataset does not exist
+                Swal.fire({
+                    title: 'Error',
+                    html: 'Anda harus melakukan <b>preprocessing data</b> terlebih dahulu di <b>menu proses data</b>',
+                    icon: 'warning',
+                    confirmButtonText: 'OK'
+                });
+            }
+        });
     });
+    
 
     $('#btn_download_prediksi').on('click', () => {
-        window.location.href = '/api/predict/file/download';
+        // Function to check if predicted file exists
+        function checkPredictedFileExists() {
+            return $.ajax({
+                url: '/api/check_predicted_file', // URL endpoint to check if preprocessed dataset file exists
+                type: 'GET'
+            });
+        }
+
+        checkPredictedFileExists().done((response) => {
+            if (response.exists) {
+                window.location.href = '/api/predict/file/download';
+            } else {
+                // Display warning if predicted file does not exist
+                Swal.fire({
+                    title: 'Error',
+                    html: 'Anda harus melakukan <b>prediksi</b> terlebih dahulu dengan <b>klik tombol prediksi</b>',
+                    icon: 'warning',
+                    confirmButtonText: 'OK'
+                });
+            }
+        }); 
     });    
 
     $('#reloadData').click( () => {

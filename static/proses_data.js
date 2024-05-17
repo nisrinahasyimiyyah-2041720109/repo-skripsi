@@ -44,96 +44,116 @@ $(document).ready(() => {
     };
 
     $('#btn_proses_data').on('click', () => {
-        // Display preprocessing data toast notification
-        const preprocessingToast = Swal.mixin({
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timerProgressBar: true,
-            onOpen: (toast) => {
-                toast.addEventListener('mouseenter', Swal.stopTimer);
-                toast.addEventListener('mouseleave', Swal.resumeTimer);
-            }
-        });
-
-        preprocessingToast.fire({
-            icon: 'info',
-            title: 'Preprocessing data...',
-            timer: 0, // Set initial timer to 0
-            didOpen: () => {
-                // Start timer when the toast opens
-                const timerInterval = setInterval(() => {
-                    // You can replace this condition with your logic to check if preprocessing is done
-                    if (preprocessingIsDone()) {
-                        // Clear the interval and close the toast
-                        clearInterval(timerInterval);
-                        preprocessingToast.close();
+        // Function to check if dataset file exists
+        function checkDatasetExists() {
+            return $.ajax({
+                url: '/api/check_dataset', // URL endpoint to check if dataset file exists
+                type: 'GET'
+            });
+        }
+    
+        checkDatasetExists().done((response) => {
+            if (response.exists) {
+                // Proceed with preprocessing if dataset exists
+                const preprocessingToast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timerProgressBar: true,
+                    onOpen: (toast) => {
+                        toast.addEventListener('mouseenter', Swal.stopTimer);
+                        toast.addEventListener('mouseleave', Swal.resumeTimer);
                     }
-                }, 1000); // Check every second
+                });
+    
+                preprocessingToast.fire({
+                    icon: 'info',
+                    title: 'Preprocessing data...',
+                    timer: 0, // Set initial timer to 0
+                    didOpen: () => {
+                        // Start timer when the toast opens
+                        const timerInterval = setInterval(() => {
+                            // You can replace this condition with your logic to check if preprocessing is done
+                            if (preprocessingIsDone()) {
+                                // Clear the interval and close the toast
+                                clearInterval(timerInterval);
+                                preprocessingToast.close();
+                            }
+                        }, 1000); // Check every second
+                    }
+                });
+    
+                $.ajax({
+                    url: '/api/proses/data',
+                    type: 'POST',
+                    contentType: false,
+                    cache: false,
+                    processData: false,
+                }).done((resp) => {
+                    // Close loading popup
+                    Swal.close();
+    
+                    // Display success Swal.fire
+                    Swal.fire({
+                        title: 'preprocessing selesai',
+                        icon: 'success',
+                        showConfirmButton: true, // Show confirm button
+                        showCloseButton: false,
+                        allowEscapeKey: false,
+                        allowOutsideClick: false,
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Reload the page after successful upload
+                            location.reload(true); // This will force a reload of the page
+                        }
+                    });
+                    // Parse respons JSON menjadi objek JavaScript
+                    const parsedResponse = JSON.parse(resp);
+    
+                    // Simpan data ke local storage setiap kali tampilan data diperbarui
+                    localStorage.setItem('preprocessData', JSON.stringify(parsedResponse.data));
+                    console.log("Data has been saved to Local Storage:", parsedResponse.data);
+    
+                    // Tampilkan data
+                    displayData(parsedResponse.data);
+    
+                    // Hitung jumlah halaman yang diperlukan
+                    const totalPages = Math.ceil(parsedResponse.data.length / rowsPerPage);
+    
+                    // Tampilkan informasi paginasi
+                    $('#paginationInfoP').text('Page ' + currentPage + ' of ' + totalPages);
+    
+                    // Event handler for Next button
+                    $('#nextPageP').on('click', () => {
+                        if (currentPage < totalPages) {
+                            currentPage++;
+                            $('#DataUlasanPreprocessBody').empty();
+                            displayData(parsedResponse.data);
+                            $('#paginationInfoP').text('Page ' + currentPage + ' of ' + totalPages);
+                        }
+                    });
+    
+                    // Event handler for Previous button
+                    $('#prevPageP').on('click', () => {
+                        if (currentPage > 1) {
+                            currentPage--;
+                            $('#DataUlasanPreprocessBody').empty();
+                            displayData(parsedResponse.data);
+                            $('#paginationInfoP').text('Page ' + currentPage + ' of ' + totalPages);
+                        }
+                    });
+                });
+            } else {
+                // Display warning if dataset does not exist
+                Swal.fire({
+                    title: 'Error',
+                    html: 'Anda harus <b>mengunggah file dataset</b> terlebih dahulu di <b>menu dataset</b>',
+                    icon: 'warning',
+                    confirmButtonText: 'OK'
+                });
             }
         });
-
-        $.ajax({
-            url: '/api/proses/data',
-            type: 'POST',
-            contentType: false,
-            cache: false,
-            processData: false,
-        }).done((resp) => {
-            // Close loading popup
-            Swal.close();
-
-            // Display success Swal.fire
-            Swal.fire({
-                title: 'preprocessing selesai',
-                icon: 'success',
-                showConfirmButton: true, // Show confirm button
-                showCloseButton: false,
-                allowEscapeKey: false,
-                allowOutsideClick: false,
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Reload the page after successful upload
-                    location.reload(true); // This will force a reload of the page
-                }
-            });
-            // Parse respons JSON menjadi objek JavaScript
-            const parsedResponse = JSON.parse(resp);
-    
-            // Simpan data ke local storage setiap kali tampilan data diperbarui
-            localStorage.setItem('preprocessData', JSON.stringify(parsedResponse.data));
-            console.log("Data has been saved to Local Storage:", parsedResponse.data);
-    
-            // Tampilkan data
-            displayData(parsedResponse.data);
-    
-            // Hitung jumlah halaman yang diperlukan
-            const totalPages = Math.ceil(parsedResponse.data.length / rowsPerPage);
-    
-            // Tampilkan informasi paginasi
-            $('#paginationInfoP').text('Page ' + currentPage + ' of ' + totalPages);
-    
-            // Event handler for Next button
-            $('#nextPageP').on('click', () => {
-                if (currentPage < totalPages) {
-                    currentPage++;
-                    $('#DataUlasanPreprocessBody').empty();
-                    displayData(parsedResponse.data);
-                    $('#paginationInfoP').text('Page ' + currentPage + ' of ' + totalPages);
-                }
-            });
-    
-            // Event handler for Previous button
-            $('#prevPageP').on('click', () => {
-                if (currentPage > 1) {
-                    currentPage--;
-                    $('#DataUlasanPreprocessBody').empty();
-                    displayData(parsedResponse.data);
-                    $('#paginationInfoP').text('Page ' + currentPage + ' of ' + totalPages);
-                }
-            });
-        });
-    });
+    });    
 
     // Cek apakah ada data yang disimpan di local storage
     const storedData = localStorage.getItem('preprocessData');
