@@ -113,6 +113,24 @@ def check_dataset():
     file_exists = os.path.exists(dataset_path)
     return jsonify({"exists": file_exists})
 
+@app.route('/api/delete_datasets', methods=['DELETE'])
+def delete_datasets():
+    try:
+        paths = [
+            'dataset/dataframe/dataset.csv',
+            'dataset/preprocessing/dataset_hasil_preprocess.csv',
+            'dataset/predict_file/hasil_prediksi.csv'
+        ]
+        
+        # Delete each file if it exists
+        for path in paths:
+            if os.path.exists(path):
+                os.remove(path)
+        
+        return jsonify({"result": "success"})
+    except Exception as e:
+        return jsonify({"result": "error", "message": str(e)})
+
 @app.route('/api/count/labels/dataset', methods=['POST'])
 def api_counts_labels_dataset():
     if request.method == 'POST':

@@ -167,6 +167,44 @@ $(document).ready(() => {
         populateTable(csvData);
     }
 
+    $('#btn_hapus_dataset').on('click', () => {
+        Swal.fire({
+            title: 'Apakah Anda yakin?',
+            text: "Data yang dihapus tidak dapat dikembalikan!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Ya, hapus!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/api/delete_datasets',
+                    type: 'DELETE',
+                }).done((response) => {
+                    if (response.result === 'success') {
+                        // Clear local storage
+                        localStorage.removeItem('csvData');
+                        localStorage.removeItem('preprocessData');
+                        Swal.fire(
+                            'Dihapus!',
+                            'Dataset telah dihapus.',
+                            'success'
+                        ).then(() => {
+                            location.reload(true); // Reload the page to reflect changes
+                        });
+                    } else {
+                        Swal.fire(
+                            'Error!',
+                            'Terjadi kesalahan saat menghapus dataset.',
+                            'error'
+                        );
+                    }
+                });
+            }
+        });
+    });
+
     // Your existing code for reloading data
     $('#reloadData').click(() => {
         reqBarData();
