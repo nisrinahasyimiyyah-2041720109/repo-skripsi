@@ -22,7 +22,7 @@ $(document).ready(() => {
     const handleCSVUpload = () => {
         if ($('#form_upload_dataset')[0].files.length === 0) {
             Swal.fire({
-                title: 'File Not Found',
+                title: 'File Tidak Ditemukan',
                 icon: 'error',
                 showCloseButton: true,
                 showConfirmButton: false,
@@ -43,7 +43,7 @@ $(document).ready(() => {
                     if (resp.result === 'upload success') {
                         // Display success Swal.fire
                         Swal.fire({
-                            title: resp.result,
+                            title: 'Upload Berhasil',
                             icon: 'success',
                             showConfirmButton: true, // Show confirm button
                             showCloseButton: false,
@@ -169,7 +169,7 @@ $(document).ready(() => {
 
     $('#btn_hapus_dataset').on('click', () => {
         Swal.fire({
-            title: 'Apakah Anda yakin?',
+            title: 'Apakah Anda Yakin?',
             text: "Data yang dihapus tidak dapat dikembalikan!",
             icon: 'warning',
             showCancelButton: true,
