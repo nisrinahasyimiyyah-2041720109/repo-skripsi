@@ -62,18 +62,37 @@ $(document).ready( () => {
             }
         });
     
+        // Object to map labels to their data values and colors
+        let labelDataMap = {
+            'Positif': 2,
+            'Negatif': 0,
+            'Netral': 1
+        };
+
+        // Fill the object with actual data values
+        updatedLabels.forEach((label, index) => {
+            if (labelDataMap.hasOwnProperty(label)) {
+                labelDataMap[label] = value[index];
+            }
+        });
+
+        // Ensure labels and data are ordered as desired
+        let orderedLabels = ['Positif', 'Negatif', 'Netral'];
+        let orderedData = orderedLabels.map(label => labelDataMap[label]);
+        let labelColorMap = {
+            'Positif': '#00a65a', // Hijau untuk label "Positif"
+            'Negatif': '#f56954', // Merah untuk label "Negatif"
+            'Netral': '#7ec2e7'  // Biru untuk label "Netral"
+        };
+        let orderedColors = orderedLabels.map(label => labelColorMap[label]);
+
         let chart = new Chart($(id)[0].getContext('2d'), {
             type: 'pie',
             data: {
-                labels: updatedLabels, // Menggunakan label yang sudah diperbarui
+                labels: orderedLabels,
                 datasets: [{
-                    data: value,
-                    backgroundColor: [
-                        '#00a65a', // Warna untuk label "Positif"
-                        '#f56954', // Warna untuk label "Negatif"
-                        '#7ec2e7', // Warna untuk label "Netral"
-                        // Anda dapat menambahkan lebih banyak warna sesuai kebutuhan
-                    ],
+                    data: orderedData,
+                    backgroundColor: orderedColors
                 }]
             },
             options: {
@@ -83,7 +102,7 @@ $(document).ready( () => {
                 maintainAspectRatio : false,
                 responsive : true,
             }
-        });
+        });    
     }
     
 
