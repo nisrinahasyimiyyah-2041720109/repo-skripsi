@@ -208,14 +208,30 @@ $(document).ready(() => {
     };
     
     
+    // Event handler for Scrape data button
     $('#btn_scrape_data').on('click', () => {
         const url = $('#input_url').val(); // Ambil URL dari input
-    
+        
         // Regex untuk memvalidasi URL
         const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/?$/;
-    
+
         if (url && urlPattern.test(url)) {
-            handleScraping(url);
+            // Check if dataset exists before scraping
+            checkDatasetExists((exists) => {
+                if (exists) {
+                    Swal.fire({
+                        title: 'Warning',
+                        text: 'Dataset sudah ada. Hapus dataset terlebih dahulu sebelum melakukan scraping data baru.',
+                        icon: 'warning',
+                        showConfirmButton: true,
+                        showCloseButton: true,
+                        allowEscapeKey: false,
+                        allowOutsideClick: false,
+                    });
+                } else {
+                    handleScraping(url);
+                }
+            });
         } else {
             Swal.fire({
                 title: 'URL tidak valid',
@@ -333,9 +349,46 @@ $(document).ready(() => {
         updatePagination();
     };
 
+    // Function to check if dataset exists
+    const checkDatasetExists = (callback) => {
+        $.ajax({
+            url: '/api/check_dataset',
+            type: 'GET',
+            success: (response) => {
+                callback(response.exists);
+            },
+            error: (xhr, status, error) => {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Gagal mengecek keberadaan dataset.',
+                    icon: 'error',
+                    showCloseButton: true,
+                    showConfirmButton: false,
+                    allowEscapeKey: false,
+                    allowOutsideClick: false,
+                });
+                callback(false);
+            }
+        });
+    };
+
     // Event handler for CSV upload button
     $('#btn_upload_dataset').on('click', () => {
-        handleCSVUpload();
+        checkDatasetExists((exists) => {
+            if (exists) {
+                Swal.fire({
+                    title: 'Warning',
+                    text: 'Dataset sudah ada. Hapus dataset terlebih dahulu sebelum mengupload yang baru.',
+                    icon: 'warning',
+                    showConfirmButton: true,
+                    showCloseButton: true,
+                    allowEscapeKey: false,
+                    allowOutsideClick: false,
+                });
+            } else {
+                handleCSVUpload();
+            }
+        });
     });
 
     const storedData = localStorage.getItem('csvData');
