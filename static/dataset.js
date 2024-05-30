@@ -87,6 +87,183 @@ $(document).ready(() => {
         }
     };
 
+    // Fungsi untuk menampilkan data pada halaman tertentu
+    const displayDataScraping = (data) => {
+        // Calculate the start and end index of data to be displayed for the current page
+        const startIndex = (currentPage - 1) * rowsPerPage;
+        const endIndex = Math.min(startIndex + rowsPerPage, data.length);
+
+        // Clear existing table rows
+        $('#DataUlasanBody').empty();
+
+        // Counter for numbering rows
+        let counter = startIndex + 1;
+
+        // Iterate over each row in the data for the current page and append it to the table
+        for (let i = startIndex; i < endIndex; i++) {
+            const rowData = data[i];
+            $('#DataUlasanBody').append(`
+                <tr>
+                    <td>${counter}</td> <!-- Nomor baris -->
+                    <td>${rowData[0]}</td> <!-- Mengakses kolom "text_string_lemma" -->
+                    <!-- Anda dapat menambahkan kolom tambahan di sini sesuai kebutuhan -->
+                </tr>
+            `);
+
+            // Increment the counter
+            counter++;
+        }
+    };
+
+    const handleScraping = (url) => {
+        const scrapingToast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timerProgressBar: true,
+            onOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
+
+        scrapingToast.fire({
+            icon: 'info',
+            title: 'Scraping data...',
+            timer: 0, // Set initial timer to 0
+            didOpen: () => {
+                // Start timer when the toast opens
+                const timerInterval = setInterval(() => {
+                    // You can replace this condition with your logic to check if preprocessing is done
+                    if (preprocessingIsDone()) {
+                        // Clear the interval and close the toast
+                        clearInterval(timerInterval);
+                        scrapingToast.close();
+                    }
+                }, 1000); // Check every second
+            }
+        });
+
+        $.ajax({
+            url: '/scrape_data',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ url: url }),
+            cache: false,
+        }).done((resp) => {
+            // Close loading popup
+            Swal.close();
+
+            // Display success Swal.fire
+            Swal.fire({
+                title: 'Scraping Selesai',
+                icon: 'success',
+                showConfirmButton: true, // Show confirm button
+                showCloseButton: false,
+                allowEscapeKey: false,
+                allowOutsideClick: false,
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Reload the page after successful upload
+                    location.reload(true); // This will force a reload of the page
+                }
+            });
+            // Parse the response
+            const scrapedData = JSON.parse(resp);
+            console.log("Scraped Data:", scrapedData);
+
+            // Save data to local storage
+            localStorage.setItem('scrapedData', JSON.stringify(scrapedData.data));
+            console.log("Data has been saved to Local Storage:", scrapedData.data);
+
+            // Tampilkan data
+            displayDataScraping(scrapedData.data);
+
+            // Hitung jumlah halaman yang diperlukan
+            const totalPages = Math.ceil(scrapedData.data.length / rowsPerPage);
+
+            // Tampilkan informasi paginasi
+            $('#paginationInfo').text('Page ' + currentPage + ' of ' + totalPages);
+
+            // Event handler for Next button
+            $('#nextPage').on('click', () => {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    $('#DataUlasanBody').empty();
+                    displayData(parsedResponse.data);
+                    $('#paginationInfo').text('Page ' + currentPage + ' of ' + totalPages);
+                }
+            });
+
+            // Event handler for Previous button
+            $('#prevPage').on('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    $('#DataUlasanBody').empty();
+                    displayData(parsedResponse.data);
+                    $('#paginationInfo').text('Page ' + currentPage + ' of ' + totalPages);
+                }
+            });
+        });
+    };
+    
+    
+    $('#btn_scrape_data').on('click', () => {
+        const url = $('#input_url').val(); // Ambil URL dari input
+    
+        // Regex untuk memvalidasi URL
+        const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/?$/;
+    
+        if (url && urlPattern.test(url)) {
+            handleScraping(url);
+        } else {
+            Swal.fire({
+                title: 'URL tidak valid',
+                text: 'Harap masukkan URL yang valid',
+                icon: 'error',
+                showCloseButton: true,
+                showConfirmButton: false,
+                allowEscapeKey: false,
+                allowOutsideClick: false,
+            });
+        }
+    });            
+
+    // Cek apakah ada data yang disimpan di local storage
+    const storedDataScraping = localStorage.getItem('scrapedData');
+    if (storedDataScraping) {
+        const scrapedData = JSON.parse(storedDataScraping);
+
+        // Tampilkan data
+        displayDataScraping(scrapedData);
+
+        // Hitung jumlah halaman yang diperlukan
+        const totalPages = Math.ceil(scrapedData.length / rowsPerPage);
+
+        // Tampilkan informasi paginasi
+        $('#paginationInfo').text('Page ' + currentPage + ' of ' + totalPages);
+
+        // Event handler for Next button
+        $('#nextPage').on('click', () => {
+            if (currentPage < totalPages) {
+                currentPage++;
+                $('#DataUlasanBody').empty();
+                displayData(scrapedData);
+                $('#paginationInfo').text('Page ' + currentPage + ' of ' + totalPages);
+            }
+        });
+
+        // Event handler for Previous button
+        $('#prevPage').on('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                $('#DataUlasanBody').empty();
+                displayData(scrapedData);
+                $('#paginationInfo').text('Page ' + currentPage + ' of ' + totalPages);
+            }
+        });
+    }
+
     // Function to display data in the table for the current page
     const displayData = (csvData) => {
         const tbody = $('#DataUlasanBody');
@@ -186,6 +363,7 @@ $(document).ready(() => {
                         // Clear local storage
                         localStorage.removeItem('csvData');
                         localStorage.removeItem('preprocessData');
+                        localStorage.removeItem('scrapedData');
                         Swal.fire(
                             'Dihapus!',
                             'Dataset telah dihapus.',
@@ -209,6 +387,7 @@ $(document).ready(() => {
     $('#reloadData').click(() => {
         reqBarData();
         populateTable(csvData);
+        displayDataScraping(data);
     });
 
     reqBarData();

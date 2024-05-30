@@ -16,6 +16,12 @@ from sklearn.model_selection import train_test_split
 import time
 from sklearn.feature_extraction.text import TfidfVectorizer
 from whitenoise import WhiteNoise
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from bs4 import BeautifulSoup
+import pandas as pd
+from datetime import datetime, timedelta
+import time
 
 #-- Declare Input --#
 # df = 'dataset/dataframe/avoskin-df.csv'
@@ -112,6 +118,54 @@ def check_dataset():
     dataset_path = 'dataset/dataframe/dataset.csv'
     file_exists = os.path.exists(dataset_path)
     return jsonify({"exists": file_exists})
+
+@app.route('/scrape_data', methods=['POST'])
+def scrape_data():
+    url = request.json['url']
+    
+    options = webdriver.ChromeOptions()
+    options.add_argument('--start-maximized')
+    driver = webdriver.Chrome(options=options)
+    driver.get(url)
+
+    data = []
+
+    for i in range(1, 7):
+        try:
+            selengkapnya_buttons = driver.find_elements(By.CSS_SELECTOR, "button.css-89c2tx")
+            for selengkapnya_button in selengkapnya_buttons:
+                selengkapnya_button.click()
+                time.sleep(2)
+
+            soup = BeautifulSoup(driver.page_source, "html.parser")
+            containers = soup.findAll('article', attrs={'class': 'css-ccpe8t'})
+
+            for container in containers:
+                review = container.find('span', attrs={'data-testid': 'lblItemUlasan'})
+
+                if review:
+                    data.append({review.text})
+                else:
+                    data.append({'No review found'})
+
+            time.sleep(2)
+            driver.find_element(By.CSS_SELECTOR, "button[aria-label='Laman berikutnya']").click()
+            time.sleep(3)
+        except Exception as e:
+            print(f"Error in iteration {i}: {e}")
+            break
+
+    driver.close()
+
+    df = pd.DataFrame(data)
+
+    # Simpan DataFrame ke file CSV
+    output_path = 'dataset/dataframe/dataset.csv'
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    df.to_csv(output_path, index=False)
+
+    # Return the DataFrame as a JSON response
+    return df.to_json(orient='split')
 
 @app.route('/api/delete_datasets', methods=['DELETE'])
 def delete_datasets():

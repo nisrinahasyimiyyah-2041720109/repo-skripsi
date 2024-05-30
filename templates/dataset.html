@@ -130,7 +130,7 @@
                                     <!-- /.card-header -->
                                     <!-- form start -->
                                     <form id='upload_file_dataset' method="post" enctype="multipart/form-data">
-                                        <div class="card-body" style="min-height: 95px; height: 95px; max-height: 95px; max-width: 100%;">
+                                        <div class="card-body" style="height: 110px;">
                                             <div class="form-group">
                                                 <div class="input-group">
                                                     <div class="custom-file">
@@ -146,14 +146,34 @@
                                         </div>
                                     </form>
                                 </div> 
-                            <!-- /.info-box -->
+                                <!-- /.info-box -->
                             </div>
+                            <!-- /.col -->
+                            <div class="col-12 col-sm-6 col-md-3">
+                                <div class="card card-primary">
+                                    <div class="card-header">
+                                        <h3 class="card-title">Scrape Data</h3>
+                                    </div>
+                                    <!-- /.card-header -->
+                                    <!-- form start -->
+                                    <form id='scrape_form' method="post">
+                                        <div class="card-body" style="height: 110px;">
+                                            <div class="form-group">
+                                                <label for="url">Website URL</label>
+                                                <input type="text" class="form-control" id="input_url" name="url" placeholder="Enter URL">
+                                            </div>
+                                        </div>
+                                        <!-- /.card-body -->
+                                        <div class="card-footer">
+                                            <button id='btn_scrape_data' type="button" class="btn btn-block btn-primary">Scrape Data</button>
+                                        </div>
+                                    </form>                                    
+                                </div>
                             </div>
-                            
-                
-                            <!-- fix for small devices only -->
-                            <div class="clearfix hidden-md-up"></div>
+                            <!-- /.col -->
                         </div>
+                        <!-- /.row -->                                                
+                        
                         <div class="row">
                             <div class="col-12">
                                 <div class="card">
