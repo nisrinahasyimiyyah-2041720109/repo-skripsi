@@ -130,7 +130,7 @@ def scrape_data():
 
     data = []
 
-    for i in range(1, 7):
+    for i in range(1, 31):
         try:
             selengkapnya_buttons = driver.find_elements(By.CSS_SELECTOR, "button.css-89c2tx")
             for selengkapnya_button in selengkapnya_buttons:
@@ -281,7 +281,7 @@ def predict_download_file():
         # print("Isi updated_lines sebelum penulisan ke file:", updated_lines)
 
         # Tulis kembali ke file dengan nilai sentimen yang telah diubah
-        with open('dataset/predict_file/hasil_prediksi_updated.csv', 'w', newline='', encoding='utf-8') as file:
+        with open('dataset/predict_file/hasil_prediksi_sentimen.csv', 'w', newline='', encoding='utf-8') as file:
             writer = csv.writer(file)
             # Tulis baris header
             writer.writerow(header)
@@ -289,7 +289,7 @@ def predict_download_file():
             writer.writerows(updated_lines)
 
         # Kirim file yang telah diperbarui ke pengguna sebagai unduhan
-        return send_file('dataset/predict_file/hasil_prediksi_updated.csv', mimetype='text/csv', as_attachment=True)
+        return send_file('dataset/predict_file/hasil_prediksi_sentimen.csv', mimetype='text/csv', as_attachment=True)
 
 @app.route('/api/check_predicted_file', methods=['GET'])
 def check_predicted_file():

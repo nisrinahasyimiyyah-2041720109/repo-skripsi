@@ -212,8 +212,8 @@ $(document).ready(() => {
     $('#btn_scrape_data').on('click', () => {
         const url = $('#input_url').val(); // Ambil URL dari input
         
-        // Regex untuk memvalidasi URL
-        const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/?$/;
+        // Regex untuk memvalidasi URL dengan skema http:// atau https:// wajib dan diakhiri dengan /review
+        const urlPattern = /^(https?:\/\/)([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/review$/;
 
         if (url && urlPattern.test(url)) {
             // Check if dataset exists before scraping
