@@ -235,7 +235,7 @@ $(document).ready(() => {
         } else {
             Swal.fire({
                 title: 'URL tidak valid',
-                text: 'Harap masukkan URL yang valid',
+                text: 'Harap masukkan URL Halaman Review Toko di Tokopedia \n ()',
                 icon: 'error',
                 showCloseButton: true,
                 showConfirmButton: false,
