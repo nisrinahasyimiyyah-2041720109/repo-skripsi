@@ -33,7 +33,7 @@ $(document).ready(() => {
             $('#DataUlasanPreprocessBody').append(`
                 <tr>
                     <td>${counter}</td> <!-- Nomor baris -->
-                    <td>${rowData[6]}</td> <!-- Mengakses kolom "text_string_lemma" -->
+                    <td>${rowData[5]}</td> <!-- Mengakses kolom "text_string_lemma" -->
                     <!-- Anda dapat menambahkan kolom tambahan di sini sesuai kebutuhan -->
                 </tr>
             `);

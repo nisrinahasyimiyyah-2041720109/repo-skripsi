@@ -3,15 +3,19 @@ import re
 import pandas as pd
 from nltk.tokenize import word_tokenize
 from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
-from Sastrawi.StopWordRemover.StopWordRemoverFactory import StopWordRemoverFactory
 
 factory = StemmerFactory()
 stemmer = factory.create_stemmer()
 
-# Inisialisasi StopWordRemoverFactory dan mendapatkan daftar stopwords dari Sastrawi
-factory_stopword = StopWordRemoverFactory()
-sastrawi_stopwords = factory_stopword.get_stop_words()
+class CustomStopWordRemover:
+    def __init__(self, stop_words):
+        self.stop_words = stop_words
 
+    def remove(self, text):
+        words = text.split()
+        filtered_words = [word for word in words if word.lower() not in self.stop_words]
+        return ' '.join(filtered_words)
+        
 class TextPreprocessingData():
     def __init__(self, text, config):
         self.path = config
@@ -111,14 +115,27 @@ class TextPreprocessingData():
     def tokenize(self, text):
         return word_tokenize(text)
 
-    # Fungsi utama untuk menghilangkan stopwords dari teks
     def remove_stopwords(self, text):
-        # Hilangkan stopwords menggunakan daftar stopwords dari Sastrawi
-        filtered_words = [word for word in text if word.lower() not in sastrawi_stopwords]
-        
-        # Memfilter kata-kata kosong
-        filtered_words = [word for word in filtered_words if word != '']
+        # Baca isi file stopword
+        with open(self.path['STOPWORDS'], 'r', encoding='utf-8') as file:
+            stopwords = file.read().splitlines()
+            
+        # Kata-kata yang ingin dikecualikan
+        exceptions = ["belum", "tidak", "tanpa"]
+
+        # Buat daftar stopword baru tanpa kata-kata pengecualian
+        custom_stopwords = [word.lower() for word in stopwords if word.lower() not in exceptions]
+
+        # Buat instance custom stopword remover
+        custom_stopword_remover = CustomStopWordRemover(custom_stopwords)
+
+        # Hapus stopword
+        filtered_words = [custom_stopword_remover.remove(w) for w in text]
+        filtered_words = [word for word in filtered_words if word != '']  # Memfilter kata-kata kosong
         return filtered_words
+
+    def lemmatization(self, text):
+        return [stemmer.stem(word) for word in text]
 
     
     def output(self, export):
@@ -129,7 +146,8 @@ class TextPreprocessingData():
         self.dataframe['normalization'] = self.dataframe['cleaned'].apply(self.normalisasi)
         self.dataframe['tokenize'] = self.dataframe['normalization'].apply(self.tokenize)
         self.dataframe['remove_stopwords'] = self.dataframe['tokenize'].apply(self.remove_stopwords)
-        self.dataframe['text_string_lemma'] = self.dataframe['remove_stopwords'].apply(lambda x: ' '.join(x))
+        self.dataframe['lemmatization'] = self.dataframe['remove_stopwords'].apply(self.lemmatization)
+        self.dataframe['text_string_lemma'] = self.dataframe['lemmatization'].apply(lambda x: ' '.join(x))
 
         # Menghapus baris yang kosong atau hanya berisi spasi pada kolom 'text_string_lemma'
         self.dataframe = self.dataframe.dropna(subset=['text_string_lemma'])

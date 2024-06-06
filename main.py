@@ -229,8 +229,8 @@ def predict_input_file():
     PATH_FILE = 'pretrained/'
     if request.method == 'POST':
         data = pd.read_csv('dataset/preprocessing/dataset_hasil_preprocess.csv')
-        filename_model_file = PATH_FILE + 'model.pickle'
-        filename_tfidf_file = PATH_FILE + 'tfidf.pickle'
+        filename_model_file = PATH_FILE + 'model-SNS.pickle'
+        filename_tfidf_file = PATH_FILE + 'tfidf-SNS.pickle'
         model = joblib.load(filename_model_file)
         tfidf = joblib.load(filename_tfidf_file)
         features = tfidf.transform(data['text_string_lemma']).toarray()
@@ -263,7 +263,7 @@ def predict_download_file():
             updated_lines = []
             for row in reader:
                 # Ambil nilai sentimen dari kolom "sentimen" (indeks 7)
-                sentiment = row[7]
+                sentiment = row[6]
 
                 # Ubah nilai 0, 1, dan 2 menjadi 'negatif', 'netral', dan 'positif' 
                 if sentiment == '0':
@@ -274,7 +274,7 @@ def predict_download_file():
                     sentiment = 'positif'
 
                 # Perbarui nilai sentimen dan tambahkan baris yang diperbarui ke daftar
-                row[7] = sentiment
+                row[6] = sentiment
                 updated_lines.append(row)
 
         # Debugging: Cetak isi updated_lines sebelum penulisan ke file
